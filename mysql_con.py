@@ -38,6 +38,10 @@ def get_page(num):
             return rows[0]
             
 if __name__ == "__main__":
+    t1 = get_country(700050)
+    t2 = get_field(700050)
+    t3 = get_page(700050)
+    
     
 
     
