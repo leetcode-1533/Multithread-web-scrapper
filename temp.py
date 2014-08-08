@@ -314,7 +314,7 @@ def create_country_db(db,cur,num,soup):
 if __name__ == "__main__":
 #    pass
 #    print sys.argv
-    db = MySQLdb.connect(host='localhost',user='root',passwd='root',db='kivalend',unix_socket='/Applications/MAMP/tmp/mysql/mysql.sock')
+    db = MySQLdb.connect(host='rosencrantz.berkeley.edu',user='kivalend',passwd='kivalend',db='kivalend')
     cur = db.cursor()
     for i in range(int(sys.argv[1]),int(sys.argv[2])):
         try:
