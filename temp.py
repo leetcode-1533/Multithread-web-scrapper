@@ -264,7 +264,7 @@ def create_page_db(db,cur,num,soup):
 def create_field_db(db,cur,num,soup):
     try:
         create_field_str = 'create table field_db (kiva_borrowers varchar(30),average_loan_size varchar(30),currency_exchange_loss_rate varchar(30),default_rate varchar(30), deliquency_rate varchar(30),due_diligence_type varchar(30),interest_and_fees_are_chared varchar(30),loans_at_risk_rate varchar(30),name varchar(30) primary key unique,portfolio_yield varchar(30),profitability varchar(30),risk_rating varchar(30),time_on_kiva varchar(30),total_loans varchar(30))'
-        create_link_str = 'create table field_link(pro_num float unique, name varchar(30) unique, foreign key(pro_num) references page_db(label) on delete cascade ON UPDATE CASCADE, foreign key(name) references field_db(name) on delete cascade ON UPDATE CASCADE)'
+        create_link_str = 'create table field_link(pro_num float unique, name varchar(30), foreign key(pro_num) references page_db(label) on delete cascade ON UPDATE CASCADE, foreign key(name) references field_db(name) on delete cascade ON UPDATE CASCADE)'
         cur.execute(create_field_str)
         cur.execute(create_link_str)
     except MySQLdb.OperationalError:
@@ -290,7 +290,7 @@ def create_country_db(db,cur,num,soup):
     try:       
         create_country_str = "create table country_db (name varchar(30) primary key unique,loans_item float, income float, loans_amounts float, exchange float)"
         cur.execute(create_country_str)
-        create_link_str = 'create table country_link (pro_num float unique, name varchar(30) unique, foreign key(pro_num) references page_db(label) on delete cascade ON UPDATE CASCADE, foreign key(name) references country_db(name) on delete cascade ON UPDATE CASCADE)'
+        create_link_str = 'create table country_link (pro_num float unique, name varchar(30), foreign key(pro_num) references page_db(label) on delete cascade ON UPDATE CASCADE, foreign key(name) references country_db(name) on delete cascade ON UPDATE CASCADE)'
         cur.execute(create_link_str)
     except MySQLdb.OperationalError:
         try:        
