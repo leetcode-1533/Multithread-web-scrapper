@@ -10,28 +10,34 @@ import csv
 import requests
 from bs4 import BeautifulSoup
 
-def get_country(con,num):
-    cur = con.cursor()
-    cur.execute("select * from country_link where pro_num=\'"+str(num)+"\'")
-    rows = cur.fetchall()
-    target = rows[0][-1]
-    cur.execute("select * from country_db where name=\'"+str(target)+"\'")
-    country_rows = cur.fetchall()
-    return country_rows[0]
+def get_country(num):
+        con = mdb.connect('rosencrantz.berkeley.edu','kivalend','kivalend','kivalend')
+        cur = con.cursor()
+        cur.execute("select * from country_link where pro_num=\'"+str(num)+"\'")
+        rows = cur.fetchall()
+        target = rows[0][-1]
+        cur.execute("select * from country_db where name=\'"+str(target)+"\'")
+        country_rows = cur.fetchall()
+        con.close()
+        return country_rows[0]
 
-def get_field(con,num):
+def get_field(num):
+    con = mdb.connect('rosencrantz.berkeley.edu','kivalend','kivalend','kivalend')
     cur = con.cursor()
     cur.execute("select * from field_link where pro_num=\'"+str(num)+"\'")
     rows = cur.fetchall()
     target = rows[0][-1]
     cur.execute("select * from field_db where name=\'"+str(target)+"\'")
     field_rows = cur.fetchall()
+    con.close()
     return field_rows[0]
     
-def get_page(con,num):
+def get_page(num):
+        con = mdb.connect('rosencrantz.berkeley.edu','kivalend','kivalend','kivalend')
         cur = con.cursor()
         cur.execute("select * from page_db where label=\'"+str(num)+"\'")
         rows = cur.fetchall()
+        con.close()
         return rows[0]
         
 def writer(mother_list):
@@ -50,21 +56,21 @@ def writer(mother_list):
             csv_out.writerow(row)
                 
 if __name__ == "__main__":
-#    temp
-#    con = mdb.connect('rosencrantz.berkeley.edu','kivalend','kivalend','kivalend')
-#    with con:
-#        cur = con.cursor()
-#        cur.execute("select label from page_db")
-#        rows = cur.fetchall()
-
-#    van = []
-#    for item in rows:
-#        num = int(item[0])
-#        t1 = get_country(con,num)
-#        t2 = get_field(con,num)
-#        t3 = get_page(con,num)
-#        tm = t1+t2+t3     
-#        van.append(tm)
+    con = mdb.connect('rosencrantz.berkeley.edu','kivalend','kivalend','kivalend')
+    with con:
+        cur = con.cursor()
+        cur.execute("select label from page_db")
+        rows = cur.fetchall()
+        print len(rows)
+    van = []
+    for item in rows:
+        num = int(item[0])
+        t1 = get_country(num)
+        t2 = get_field(num)
+        t3 = get_page(num)
+        tm = t1+t2+t3     
+        van.append(tm)
+    writer(van)
     
         
 
