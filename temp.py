@@ -220,31 +220,31 @@ def parse_field(soup,num):
     camp['currency_exchange_loss_rate'] = dd_tags[13].text.strip()
     return camp
 
-def combiner(num):
-    temp = {}
-    test1 = parse_contributor(num)
-    test2 = parse_Country(num)
-    test3 = parse_page(num)
-    test4 = parse_field(num)
-    temp.update(test1)
-    temp.update(test2)
-    temp.update(test3)
-    temp.update(test4)
-    return temp
-    
-def writer(mother_list,keys):    
-    with open('spreadsheet7398.csv','w') as outfile:
-        writer = csv.DictWriter(outfile,keys)
-        writer.writeheader()
-        writer.writerows(mother_list)
-    
-def writer_sol(num):
-    writer = csv.writer(open(str(num),'wb'))
-    cd_dict = parse_Country(num)
-    for key, value in cd_dict.items():
-        writer.writerow([key,value])
-#    db = MySQLdb.connect(host='rosencrantz.berkeley.edu',user='kivalend',passwd='kivalend')
-#    cursor = db.cursor()
+#def combiner(num):
+#    temp = {}
+#    test1 = parse_contributor(num)
+#    test2 = parse_Country(num)
+#    test3 = parse_page(num)
+#    test4 = parse_field(num)
+#    temp.update(test1)
+#    temp.update(test2)
+#    temp.update(test3)
+#    temp.update(test4)
+#    return temp
+#    
+#def writer(mother_list,keys):    
+#    with open('spreadsheet7398.csv','w') as outfile:
+#        writer = csv.DictWriter(outfile,keys)
+#        writer.writeheader()
+#        writer.writerows(mother_list)
+#    
+#def writer_sol(num):
+#    writer = csv.writer(open(str(num),'wb'))
+#    cd_dict = parse_Country(num)
+#    for key, value in cd_dict.items():
+#        writer.writerow([key,value])
+##    db = MySQLdb.connect(host='rosencrantz.berkeley.edu',user='kivalend',passwd='kivalend')
+##    cursor = db.cursor()
 
 def create_page_db(db,cur,num,soup):
     try:
