@@ -331,7 +331,7 @@ if __name__ == "__main__":
                 create_country_db(db,cur,i,soup)
                 create_field_db(db,cur,i,soup)
                 print "finish at{0}".format(i)
-        except MySQLdb.IntegrityError:
+        except :
             continue
         
             

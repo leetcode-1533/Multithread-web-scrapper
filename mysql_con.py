@@ -4,8 +4,11 @@ Created on Thu Aug  7 17:20:11 2014
 
 @author: tk
 """
-
+import temp
 import MySQLdb as mdb
+import csv
+import requests
+from bs4 import BeautifulSoup
 
 def get_country(con,num):
     cur = con.cursor()
@@ -30,23 +33,39 @@ def get_page(con,num):
         cur.execute("select * from page_db where label=\'"+str(num)+"\'")
         rows = cur.fetchall()
         return rows[0]
-            
-if __name__ == "__main__":
-    con = mdb.connect('rosencrantz.berkeley.edu','kivalend','kivalend','kivalend')
-    with con:
-        cur = con.cursor()
-        cur.execute("select label from page_db")
-        rows = cur.fetchall()
-        row_clip = rows[0:1000]
-    van = []
-    for item in row_clip:
-        num = int(item[0])
-        t1 = get_country(con,num)
-        t2 = get_field(con,num)
-        t3 = get_page(con,num)
-        tm = t1+t2+t3     
-        van.append(tm)
         
+def writer(mother_list):
+    #get a sample of dict
+    url = "http://www.kiva.org/lend/{0}".format(700050)
+    res = requests.get(url)
+    soup = BeautifulSoup(res.content)
+    page_sample= temp.parse_page(soup,700050)
+    field_sample = temp.parse_field(soup,700050)
+    country_sample = temp.parse_country(soup,700050) 
+    
+    with open('file_tk.csv','w') as out:
+        csv_out=csv.writer(out)
+        csv_out.writerow(country_sample.keys()+field_sample.keys()+page_sample.keys())
+        for row in mother_list:
+            csv_out.writerow(row)
+                
+if __name__ == "__main__":
+#    temp
+#    con = mdb.connect('rosencrantz.berkeley.edu','kivalend','kivalend','kivalend')
+#    with con:
+#        cur = con.cursor()
+#        cur.execute("select label from page_db")
+#        rows = cur.fetchall()
+
+#    van = []
+#    for item in rows:
+#        num = int(item[0])
+#        t1 = get_country(con,num)
+#        t2 = get_field(con,num)
+#        t3 = get_page(con,num)
+#        tm = t1+t2+t3     
+#        van.append(tm)
+    
         
 
 #    
