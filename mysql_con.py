@@ -36,6 +36,9 @@ def get_page(num):
             cur.execute("select * from page_db where label=\'"+str(num)+"\'")
             rows = cur.fetchall()
             return rows[0]
+            
+if __name__ == "__main__":
+    
 
     
     

@@ -101,7 +101,7 @@ def parse_country(soup,num):
         div_meta = header_tag.find('div',{'class': 'meta'})
         locccc = div_meta.find('a').text.strip()
         country_name = locccc.split(',')[-1]
-        countrydict['country_name'] = country_name
+        countrydict['country_name'] = country_name.strip()
         return countrydict 
 
 def parse_page(soup,num):
@@ -162,6 +162,7 @@ def parse_page(soup,num):
         pass
     camp['tag_list'] = tag_list  
     return camp
+    
 def tag_convert(tag_list):
     string = ""
     for item in tag_list:
