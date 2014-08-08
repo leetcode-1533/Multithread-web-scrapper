@@ -247,7 +247,7 @@ def parse_field(soup,num):
 
 def create_page_db(db,cur,num,soup):
     try:
-        create_page_str = 'create table page_db (label float primary key,borrower_name varchar(30),currency_exchange_loss varchar(30),large_sector varchar(30),listed_date varchar(30),location varchar(30),need_amount float,pre_disbursed_date varchar(30),repayment_schedule varchar(30),repayment_term varchar(30),specific_sector varchar(30),status varchar(30),tag_list varchar(300),url varchar(50))'
+        create_page_str = 'create table page_db (label float primary key unique,borrower_name varchar(30),currency_exchange_loss varchar(30),large_sector varchar(30),listed_date varchar(30),location varchar(30),need_amount float,pre_disbursed_date varchar(30),repayment_schedule varchar(30),repayment_term varchar(30),specific_sector varchar(30),status varchar(30),tag_list varchar(300),url varchar(50))'
         cur.execute(create_page_str)
     except MySQLdb.OperationalError:
         try:
@@ -261,8 +261,8 @@ def create_page_db(db,cur,num,soup):
     
 def create_field_db(db,cur,num,soup):
     try:
-        create_field_str = 'create table field_db (kiva_borrowers varchar(30),average_loan_size varchar(30),currency_exchange_loss_rate varchar(30),default_rate varchar(30), deliquency_rate varchar(30),due_diligence_type varchar(30),interest_and_fees_are_chared varchar(30),loans_at_risk_rate varchar(30),name varchar(30) primary key,portfolio_yield varchar(30),profitability varchar(30),risk_rating varchar(30),time_on_kiva varchar(30),total_loans varchar(30))'
-        create_link_str = 'create table field_link(pro_num float, name varchar(30), foreign key(pro_num) references page_db(label) on delete cascade ON UPDATE CASCADE, foreign key(name) references field_db(name) on delete cascade ON UPDATE CASCADE)'
+        create_field_str = 'create table field_db (kiva_borrowers varchar(30),average_loan_size varchar(30),currency_exchange_loss_rate varchar(30),default_rate varchar(30), deliquency_rate varchar(30),due_diligence_type varchar(30),interest_and_fees_are_chared varchar(30),loans_at_risk_rate varchar(30),name varchar(30) primary key unique,portfolio_yield varchar(30),profitability varchar(30),risk_rating varchar(30),time_on_kiva varchar(30),total_loans varchar(30))'
+        create_link_str = 'create table field_link(pro_num float unique, name varchar(30) unique, foreign key(pro_num) references page_db(label) on delete cascade ON UPDATE CASCADE, foreign key(name) references field_db(name) on delete cascade ON UPDATE CASCADE)'
         cur.execute(create_field_str)
         cur.execute(create_link_str)
     except MySQLdb.OperationalError:
@@ -286,9 +286,9 @@ def create_field_db(db,cur,num,soup):
 
 def create_country_db(db,cur,num,soup):        
     try:       
-        create_country_str = "create table country_db (name varchar(30) primary key,loans_item float, income float, loans_amounts float, exchange float)"
+        create_country_str = "create table country_db (name varchar(30) primary key unique,loans_item float, income float, loans_amounts float, exchange float)"
         cur.execute(create_country_str)
-        create_link_str = 'create table country_link (pro_num float, name varchar(30), foreign key(pro_num) references page_db(label) on delete cascade ON UPDATE CASCADE, foreign key(name) references country_db(name) on delete cascade ON UPDATE CASCADE)'
+        create_link_str = 'create table country_link (pro_num float unique, name varchar(30) unique, foreign key(pro_num) references page_db(label) on delete cascade ON UPDATE CASCADE, foreign key(name) references country_db(name) on delete cascade ON UPDATE CASCADE)'
         cur.execute(create_link_str)
     except MySQLdb.OperationalError:
         try:        
@@ -312,7 +312,7 @@ def create_country_db(db,cur,num,soup):
                                                         
 if __name__ == "__main__":
 #    pass
-    db = MySQLdb.connect(host='rosencrantz.berkeley.edu',user='kivalend',passwd='kivalend',db='kivalend')#,unix_socket='/Applications/MAMP/tmp/mysql/mysql.sock')
+    db = MySQLdb.connect(host='localhost',user='root',passwd='root',db='kivalend',unix_socket='/Applications/MAMP/tmp/mysql/mysql.sock')
     cur = db.cursor()
     for i in range(500001,399999,-1):
         try:
@@ -329,6 +329,7 @@ if __name__ == "__main__":
                 create_field_db(db,cur,i,soup)
                 print "finish at{0}".format(i)
         except MySQLdb.IntegrityError:
+            print "Overlap"
             continue
             
             
