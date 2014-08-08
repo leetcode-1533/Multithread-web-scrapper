@@ -49,7 +49,7 @@ def writer(mother_list):
     field_sample = temp.parse_field(soup,700050)
     country_sample = temp.parse_country(soup,700050) 
     
-    with open('file_tk.csv','w') as out:
+    with open('high_hg.csv','w') as out:
         csv_out=csv.writer(out)
         csv_out.writerow(country_sample.keys()+field_sample.keys()+page_sample.keys())
         for row in mother_list:
@@ -71,7 +71,7 @@ if __name__ == "__main__":
             t3 = get_page(num)
             tm = t1+t2+t3     
             van.append(tm)
-        except IndexError:
+        except (IndexError,mdb.OperationalError):
             continue
     writer(van)
     
