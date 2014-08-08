@@ -6,7 +6,7 @@ Created on Mon Jul 28 17:27:57 2014
 """
 import requests
 from bs4 import BeautifulSoup
-import csv
+#import csv
 import MySQLdb
 import re
 #To identify if the image is the default image
@@ -102,7 +102,6 @@ def parse_country(soup,num):
         country_name = locccc.split(',')[-1]
         countrydict['country_name'] = country_name
         return countrydict 
-
 
 def parse_page(soup,num):
     camp = {}       
@@ -329,7 +328,7 @@ if __name__ == "__main__":
                 create_country_db(db,cur,i,soup)
                 create_field_db(db,cur,i,soup)
                 print "finish at{0}".format(i)
-        except :
+        except MySQLdb.IntegrityError:
             continue
             
             
