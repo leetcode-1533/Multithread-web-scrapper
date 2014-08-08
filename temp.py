@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 #import csv
 import MySQLdb
 import re
+import sys
 #To identify if the image is the default image
 #import Image
 #import urllib, cStringIO
@@ -329,8 +330,8 @@ if __name__ == "__main__":
                 create_field_db(db,cur,i,soup)
                 print "finish at{0}".format(i)
         except MySQLdb.IntegrityError:
-            print "Overlap"
             continue
+        
             
             
     
