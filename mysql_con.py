@@ -64,12 +64,15 @@ if __name__ == "__main__":
         print len(rows)
     van = []
     for item in rows:
-        num = int(item[0])
-        t1 = get_country(num)
-        t2 = get_field(num)
-        t3 = get_page(num)
-        tm = t1+t2+t3     
-        van.append(tm)
+        try:
+            num = int(item[0])
+            t1 = get_country(num)
+            t2 = get_field(num)
+            t3 = get_page(num)
+            tm = t1+t2+t3     
+            van.append(tm)
+        except IndexError:
+            continue
     writer(van)
     
         
