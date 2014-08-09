@@ -304,7 +304,7 @@ if __name__ == "__main__":
 #    print sys.argv
     db = MySQLdb.connect(host='rosencrantz.berkeley.edu',user='kivalend',passwd='kivalend',db='kivalend')
     cur = db.cursor()
-    for i in [616834 ,433596 ,149543 ,685 ,576373 ,630660 ,73283,493704 ,751310 ,76385 ,739733]:    #range(int(sys.argv[1]),int(sys.argv[2])):
+    for i in range(int(sys.argv[1]),int(sys.argv[2])):
         try:
             url = "http://www.kiva.org/lend/{0}".format(i)
             res = requests.get(url)
