@@ -44,7 +44,7 @@ import sys
 #        # data_dict['cor_team']=temp_list
 #        return data_dict
 #         
-def parse_country(soup):
+def parse_country(soup,num):
         countrydict = {}
         countrydata=soup.findAll('ul',{'class':'countryMapStatsGrid'})
         if countrydata is None:
@@ -104,7 +104,7 @@ def parse_country(soup):
         countrydict['country_name'] = country_name.strip()
         return countrydict 
 
-def parse_page(soup,num):   
+def parse_page(soup,num):
     camp = {}   
     #Scraping location & Category
     web_header = soup.find('div',{'id':'pageHeader'})  
@@ -122,20 +122,16 @@ def parse_page(soup,num):
     
     #Navigation Loan summery:
     summary = soup.find('div',{'id':'loanSummary'})
+    #To see if status is repaid:
+    if summary.find('div',{'class':'loanStatus.notice'}):
+        status = summary.find('div',{'class':'loanStatus.notice'}).text.strip()
+    elif summary.find('span',{'class':'repaid'})!=None:
+        status = 'Repaid'
+    else:
+        status = 'Rarsing Money'
+        
+    need_loan_text = summery.find('div',{'class':'loanExcerpt'}).text.strip()
     
-    need_text = summary.find('div',{'class':'loanExcerpt'}).text.strip()
-    t1_find = re.findall('\$.*\040',need_text)[0]
-    t2_find = re.findall('[-+]?[0-9]*\,?[0-9]+',t1_find[1:])[0]     
-    camp['needed_amount'] = t2_find.strip()
-    
-    #status label:There are 11 labels all together:
-    if summary.find('div',{'class':'loanStatus notice'})!=None:
-        status = summary.find('div',{'class':'loanStatus notice'}).text.strip()
-    else :
-        status = 'None'       
-    camp['status']= status
-       
-    #Detail list:
     detail_list = summary.find('dl')
     tag_list = detail_list.findAll('dd')
     
@@ -145,16 +141,24 @@ def parse_page(soup,num):
     camp['Listed'] = tag_list[3].text.strip()
     camp['Currency Exchange Loss'] = tag_list[4].text.strip()
     
-    # The 6th column some time is exist some time it is not.
-    camp['col_6'] = "None" 
-    camp['col_6'] = "None"
-      
+    
+    camp['Ended'] = 'None Status is '+status
+    camp['Refunded'] = 'None Status is '+status
+  
     if len(tag_list)==6:
-        camp['col_6'] = status+':'+tag_list[5].text.strip()
-    #Distinguish Rising and Failed
-    if camp['col_6']==camp['status'] and camp['status']=='None':
-        camp['status'] = 'Rasing Money'
-         
+        if status == 'Repaid':
+            camp['Ended'] = tag_list[5].text.strip()
+        elif status == 'Refunded':
+            camp['Refunded'] = tag_list[5].text.strip()
+    
+            
+            
+            
+   
+            
+            
+
+        
     #tring to find pic_url:
     url = soup.find('figure',{'class':'businessFig'}).find('a')['href']
 #    file_img = cStringIO.StringIO(urllib.urlopen(url).read())
@@ -163,14 +167,15 @@ def parse_page(soup,num):
 #    code = is_unuploded_pic(img1,img2)
 #    if code == 0:
 #        url = "Not uploaded"
-    camp['url']=url.strip()    
+    camp['url']=url 
+    
     #trying to find tags: 
     tag_list = []
     try:
         tag_par = soup.find('section',{'id':'loanTags'})
         tag_list_html = tag_par.findAll('a')
         for item in tag_list_html:
-            tag_list.append(item.text.strip())
+            tag_list.append(item.text)
     except AttributeError:
         pass
     camp['tag_list'] = tag_list  
@@ -193,7 +198,7 @@ def is_unuploded_pic(img1,img2):
         s += numpy.sum(numpy.abs(m1-m2))
     return s
     
-def parse_field(soup):
+def parse_field(soup,num):
     camp = {}
     div_tag1 = soup.find('div',{'class':'wrap'})
     div_tag2 = div_tag1.find('div',{'class': 'mainWrapper container'})
@@ -236,13 +241,13 @@ def parse_field(soup):
 
 def create_page_db(db,cur,num,soup):
     try:
-        create_page_str = 'create table page_info (label float primary key unique,Borrower_name varchar(30),Currency_exchange_loss varchar(30),col_6 varchar(100),Listed_date varchar(30),Pre_Disburesed_date varchar(30),status varchar(150),Repaymend_Schedule varchar(30),Repayment_Term varchar(30),large_cat varchar(30),location varchar(30),need_amount varchar(30),specific_cat varchar(30),tag_list varchar(300),url varchar(50))'
+        create_page_str = 'create table page_db (label float primary key unique,borrower_name varchar(30),currency_exchange_loss varchar(30),large_sector varchar(30),listed_date varchar(30),location varchar(30),need_amount float,pre_disbursed_date varchar(30),repayment_schedule varchar(30),repayment_term varchar(30),specific_sector varchar(30),status varchar(30),tag_list varchar(300),url varchar(50))'
         cur.execute(create_page_str)
     except MySQLdb.OperationalError:
         try:
             dic = parse_page(soup,num)
-            insert_str = "insert into page_info (label,Borrower_name,Currency_exchange_loss,col_6,Listed_date,Pre_Disburesed_date,status,Repaymend_Schedule,Repayment_Term,large_cat,location,need_amount,specific_cat,tag_list,url) values (\'{0}\',\'{1}\',\'{2}\',\'{3}\',\'{4}\',\'{5}\',\'{6}\',\'{7}\',\'{8}\',\'{9}\',\'{10}\',\'{11}\',\'{12}\',\'{13}\',\'{14}\')"
-            tk_str = insert_str.format(num,dic['Borrower_name'],dic['Currency Exchange Loss'],dic['col_6'],dic['Listed'],dic['Pre-Disbursed'],dic['status'],dic['Repayment Schedule'],dic['Repayment Term'],dic['large_cat'],dic['location'],dic['needed_amount'],dic['specific_cat'],tag_convert(dic['tag_list']),dic['url'])
+            insert_str = "insert into page_db (label,borrower_name,currency_exchange_loss,large_sector,listed_date,location,need_amount,pre_disbursed_date,repayment_schedule,repayment_term,specific_sector,status,tag_list,url) values (\'{0}\',\'{1}\',\'{2}\',\'{3}\',\'{4}\',\'{5}\',\'{6}\',\'{7}\',\'{8}\',\'{9}\',\'{10}\',\'{11}\',\'{12}\',\'{13}\')"
+            tk_str = insert_str.format(num,dic['borrower_name'],dic['currency exchange loss'],dic['large_sector'],dic['listed_date'],dic['location'],dic['needed_amount'],dic['pre-disbursed_date'],dic['repayment schedule'],dic['repayment term'],dic['specific_sector'],dic['status'],tag_convert(dic['tag_list']),dic['url'])
             cur.execute(tk_str)
             db.commit()
         except MySQLdb.IntegrityError:
@@ -250,21 +255,21 @@ def create_page_db(db,cur,num,soup):
     
 def create_field_db(db,cur,num,soup):
     try:
-        create_field_str = 'create table field_info (kiva_borrowers varchar(30),average_loan_size varchar(30),currency_exchange_loss_rate varchar(30),default_rate varchar(30), deliquency_rate varchar(30),due_diligence_type varchar(30),interest_and_fees_are_chared varchar(30),loans_at_risk_rate varchar(30),name varchar(30) primary key unique,portfolio_yield varchar(30),profitability varchar(30),risk_rating varchar(30),time_on_kiva varchar(30),total_loans varchar(30))'
-        create_link_str = 'create table field_li(pro_num float unique, name varchar(30), foreign key(pro_num) references page_db(label) on delete cascade ON UPDATE CASCADE, foreign key(name) references field_db(name) on delete cascade ON UPDATE CASCADE)'
+        create_field_str = 'create table field_db (kiva_borrowers varchar(30),average_loan_size varchar(30),currency_exchange_loss_rate varchar(30),default_rate varchar(30), deliquency_rate varchar(30),due_diligence_type varchar(30),interest_and_fees_are_chared varchar(30),loans_at_risk_rate varchar(30),name varchar(30) primary key unique,portfolio_yield varchar(30),profitability varchar(30),risk_rating varchar(30),time_on_kiva varchar(30),total_loans varchar(30))'
+        create_link_str = 'create table field_link(pro_num float unique, name varchar(30), foreign key(pro_num) references page_db(label) on delete cascade ON UPDATE CASCADE, foreign key(name) references field_db(name) on delete cascade ON UPDATE CASCADE)'
         cur.execute(create_field_str)
         cur.execute(create_link_str)
     except MySQLdb.OperationalError:
         try:
-            dic = parse_field(soup)
-            insert_str = "insert into field_info (kiva_borrowers,average_loan_size,currency_exchange_loss_rate,default_rate,deliquency_rate,due_diligence_type,interest_and_fees_are_chared,loans_at_risk_rate,name,portfolio_yield,profitability,risk_rating,time_on_kiva,total_loans) values (\'{0}\',\'{1}\',\'{2}\',\'{3}\',\'{4}\',\'{5}\',\'{6}\',\'{7}\',\'{8}\',\'{9}\',\'{10}\',\'{11}\',\'{12}\',\'{13}\')".format(dic['Kiva_borrowers'],dic['average_loan_siza'],dic['currency_exchange_loss_rate'],dic['default_rate'],dic['deliquency_rate'],dic['due_diligence_type'],dic['interest_and_fees_are_charged'],dic['loans_at_risk_rate'],dic['name'],dic['portfolio_yield'],dic['profitability'],dic['risk_rating'],dic['time_on_kiva'],dic['total_loans'])
+            dic = parse_field(soup,num)
+            insert_str = "insert into field_db (kiva_borrowers,average_loan_size,currency_exchange_loss_rate,default_rate,deliquency_rate,due_diligence_type,interest_and_fees_are_chared,loans_at_risk_rate,name,portfolio_yield,profitability,risk_rating,time_on_kiva,total_loans) values (\'{0}\',\'{1}\',\'{2}\',\'{3}\',\'{4}\',\'{5}\',\'{6}\',\'{7}\',\'{8}\',\'{9}\',\'{10}\',\'{11}\',\'{12}\',\'{13}\')".format(dic['Kiva_borrowers'],dic['average_loan_siza'],dic['currency_exchange_loss_rate'],dic['default_rate'],dic['deliquency_rate'],dic['due_diligence_type'],dic['interest_and_fees_are_charged'],dic['loans_at_risk_rate'],dic['name'],dic['portfolio_yield'],dic['profitability'],dic['risk_rating'],dic['time_on_kiva'],dic['total_loans'])
             cur.execute(insert_str)
-            insert_link = "insert into field_li (pro_num,name) values (\'{0}\',\'{1}\')"
+            insert_link = "insert into field_link (pro_num,name) values (\'{0}\',\'{1}\')"
             insert_act = insert_link.format(num,dic['name'])
             cur.execute(insert_act)
         except MySQLdb.IntegrityError:
             try:
-                insert_link = "insert into field_li (pro_num,name) values (\'{0}\',\'{1}\')"
+                insert_link = "insert into field_link (pro_num,name) values (\'{0}\',\'{1}\')"
                 insert_act = insert_link.format(num,dic['name'])
                 cur.execute(insert_act)
             except MySQLdb.IntegrityError:
@@ -275,22 +280,22 @@ def create_field_db(db,cur,num,soup):
 
 def create_country_db(db,cur,num,soup):        
     try:       
-        create_country_str = "create table country_info (name varchar(30) primary key unique,loans_item float, income float, loans_amounts float, exchange float)"
+        create_country_str = "create table country_db (name varchar(30) primary key unique,loans_item float, income float, loans_amounts float, exchange float)"
         cur.execute(create_country_str)
-        create_link_str = 'create table country_li (pro_num float unique, name varchar(30), foreign key(pro_num) references page_db(label) on delete cascade ON UPDATE CASCADE, foreign key(name) references country_db(name) on delete cascade ON UPDATE CASCADE)'
+        create_link_str = 'create table country_link (pro_num float unique, name varchar(30), foreign key(pro_num) references page_db(label) on delete cascade ON UPDATE CASCADE, foreign key(name) references country_db(name) on delete cascade ON UPDATE CASCADE)'
         cur.execute(create_link_str)
     except MySQLdb.OperationalError:
         try:        
-            dic = parse_country(soup)
-            insert_cou_str = 'insert into country_info (name,loans_item,income,loans_amounts,exchange) values (\'{0}\',\'{1}\',\'{2}\',\'{3}\',\'{4}\')'
+            dic = parse_country(soup,num)
+            insert_cou_str = 'insert into country_db (name,loans_item,income,loans_amounts,exchange) values (\'{0}\',\'{1}\',\'{2}\',\'{3}\',\'{4}\')'
             inserted = insert_cou_str.format(dic['country_name'],dic['country_loans_items'],dic['country_income'],dic['country_loans_amounts'],dic['country_exchange'])
             cur.execute(inserted)
-            insert_link = "insert into country_li (pro_num,name) values (\'{0}\',\'{1}\')"
+            insert_link = "insert into country_link (pro_num,name) values (\'{0}\',\'{1}\')"
             insert_act = insert_link.format(num,dic['country_name'])
             cur.execute(insert_act)
         except MySQLdb.IntegrityError:
             try:
-                insert_link = "insert into country_li (pro_num,name) values (\'{0}\',\'{1}\')"
+                insert_link = "insert into country_link (pro_num,name) values (\'{0}\',\'{1}\')"
                 insert_act = insert_link.format(num,dic['country_name'])
                 cur.execute(insert_act)
             except MySQLdb.IntegrityError:
@@ -304,22 +309,21 @@ if __name__ == "__main__":
 #    print sys.argv
     db = MySQLdb.connect(host='rosencrantz.berkeley.edu',user='kivalend',passwd='kivalend',db='kivalend')
     cur = db.cursor()
-    for i in [616834 ,433596 ,149543 ,685 ,576373 ,630660 ,73283,493704 ,751310 ,76385 ,739733]:    #range(int(sys.argv[1]),int(sys.argv[2])):
+    for i in range(int(sys.argv[1]),int(sys.argv[2])):
         try:
             url = "http://www.kiva.org/lend/{0}".format(i)
             res = requests.get(url)
             if res.status_code != 200 or res.history != []:
                 print "not 200" + url
             else:
-                print "start at {0}".format(i)
+                print "start at{0}".format(i)
                 html = res.content
                 soup = BeautifulSoup(html)
                 create_page_db(db,cur,i,soup)
                 create_country_db(db,cur,i,soup)
                 create_field_db(db,cur,i,soup)
-                print "finish at {0}".format(i)
-        except IndexError:
-            print "Wrong at {0}".format(i)
+                print "finish at{0}".format(i)
+        except :
             continue
         
             
