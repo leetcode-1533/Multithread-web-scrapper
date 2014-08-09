@@ -105,42 +105,60 @@ def parse_country(soup,num):
         return countrydict 
 
 def parse_page(soup,num):
-    camp = {}       
-    div_tag1 = soup.find('div',{'class':'wrap'})
-    div_tag2 = div_tag1.find('div',{'class': 'mainWrapper container'})
-    div_tag3 = div_tag2.find('div',{'class': 'main'})
-    lists = div_tag3.findAll('div',{'id': 'loanProfileTabs'})
-    if lists == []:
-        return
-    div_tag4 = lists[0]
-    sect_tag = div_tag4.find('section',{'id': 'businessProfile'})
-    header_tag = div_tag2.find('div', {'id': 'pageHeader'})
-    campppp = header_tag.find('h2').text
-    camp['borrower_name'] = filter(lambda ch:ch in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ', campppp)
-    div_meta = header_tag.find('div',{'class': 'meta'})
-    locccc = div_meta.find('a').text.strip()
-    camp['location'] = locccc
-    camp['large_sector'] = div_meta.find('span',{'class':'sector'}).text.strip()
-    camp['specific_sector'] = div_meta.find('span',{'class': 'activity'}).text.strip()
-    div_tag8 = sect_tag.find('div',{'class': 'g4 z'})
-    need_text = div_tag8.find('div',{'class': 'loanExcerpt'}).text.strip()
-    t1_find = re.findall('\$.*\040',need_text)[0]
-    t2_find = re.findall('[-+]?[0-9]*\,?[0-9]+',t1_find[1:])[0]  
-    camp['needed_amount'] = t2_find
-  
-    dl_repay = div_tag8.find('dl')
-    dds = dl_repay.findAll('dd')
-    tt = dds[0].text.split(' ')
-    camp['repayment term'] = tt[0]+' '+tt[1]
-    camp['repayment schedule'] = dds[1].text.strip()
-    camp['pre-disbursed_date'] = dds[2].text.strip()
-    camp['listed_date'] = dds[3].text.strip()
-    camp['currency exchange loss'] = dds[4].text.strip()
-    stat_tag = div_tag8.findAll('div',{'class': 'loanStatus notice'})
-    if stat_tag != []:
-        camp['status'] = stat_tag[0].text.strip()
+    camp = {}   
+    #Scraping location & Category
+    web_header = soup.find('div',{'id':'pageHeader'})  
+    #Borrower_name
+    Borrower_name = web_header.find('h2').text.strip()
+    camp['Borrower_name'] = Borrower_name
+    #Country&location:
+    web_header_location = web_header.find('a',{'class':'country'})
+    location = web_header_location.text.strip()
+    camp['location']=location
+    large_cat = web_header.find('span',{'class':'sector'}).text.strip()
+    camp['large_cat']=large_cat
+    specific_cat = web_header.find('span',{'class':'activity'}).text.strip()
+    camp['specific_cat']=specific_cat
+    
+    #Navigation Loan summery:
+    summary = soup.find('div',{'id':'loanSummary'})
+    #To see if status is repaid:
+    if summary.find('div',{'class':'loanStatus.notice'}):
+        status = summary.find('div',{'class':'loanStatus.notice'}).text.strip()
+    elif summary.find('span',{'class':'repaid'})!=None:
+        status = 'Repaid'
     else:
-        camp['status'] = 'none'
+        status = 'Rarsing Money'
+        
+    need_loan_text = summery.find('div',{'class':'loanExcerpt'}).text.strip()
+    
+    detail_list = summary.find('dl')
+    tag_list = detail_list.findAll('dd')
+    
+    camp['Repayment Term'] = tag_list[0].text.strip()
+    camp['Repayment Schedule'] = tag_list[1].text.strip()
+    camp['Pre-Disbursed'] = tag_list[2].text.strip()
+    camp['Listed'] = tag_list[3].text.strip()
+    camp['Currency Exchange Loss'] = tag_list[4].text.strip()
+    
+    
+    camp['Ended'] = 'None Status is '+status
+    camp['Refunded'] = 'None Status is '+status
+  
+    if len(tag_list)==6:
+        if status == 'Repaid':
+            camp['Ended'] = tag_list[5].text.strip()
+        elif status == 'Refunded':
+            camp['Refunded'] = tag_list[5].text.strip()
+    
+            
+            
+            
+   
+            
+            
+
+        
     #tring to find pic_url:
     url = soup.find('figure',{'class':'businessFig'}).find('a')['href']
 #    file_img = cStringIO.StringIO(urllib.urlopen(url).read())
@@ -220,32 +238,6 @@ def parse_field(soup,num):
     camp['default_rate'] = dd_tags[12].text.strip()
     camp['currency_exchange_loss_rate'] = dd_tags[13].text.strip()
     return camp
-
-#def combiner(num):
-#    temp = {}
-#    test1 = parse_contributor(num)
-#    test2 = parse_Country(num)
-#    test3 = parse_page(num)
-#    test4 = parse_field(num)
-#    temp.update(test1)
-#    temp.update(test2)
-#    temp.update(test3)
-#    temp.update(test4)
-#    return temp
-#    
-#def writer(mother_list,keys):    
-#    with open('spreadsheet7398.csv','w') as outfile:
-#        writer = csv.DictWriter(outfile,keys)
-#        writer.writeheader()
-#        writer.writerows(mother_list)
-#    
-#def writer_sol(num):
-#    writer = csv.writer(open(str(num),'wb'))
-#    cd_dict = parse_Country(num)
-#    for key, value in cd_dict.items():
-#        writer.writerow([key,value])
-##    db = MySQLdb.connect(host='rosencrantz.berkeley.edu',user='kivalend',passwd='kivalend')
-##    cursor = db.cursor()
 
 def create_page_db(db,cur,num,soup):
     try:
