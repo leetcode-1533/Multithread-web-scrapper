@@ -236,13 +236,13 @@ def parse_field(soup):
 
 def create_page_db(db,cur,num,soup):
     try:
-        create_page_str = 'create table page_info (label float primary key unique,Borrower_name varchar(30),Currency_exchange_loss varchar(30),col_6 varchar(100),Listed_date varchar(30),Pre_Disburesed_date varchar(30),status varchar(150),Repaymend_Schedule varchar(30),Repayment_Term varchar(30),large_cat varchar(30),location varchar(30),need_amount varchar(30),specific_cat varchar(30),tag_list varchar(300),url varchar(50))'
+        create_page_str = 'create table page_info (label float primary key unique,Currency_exchange_loss varchar(30),col_6 varchar(100),Listed_date varchar(30),Pre_Disburesed_date varchar(30),status varchar(150),Repaymend_Schedule varchar(30),Repayment_Term varchar(30),large_cat varchar(30),location varchar(30),need_amount varchar(30),specific_cat varchar(30),tag_list varchar(300),url varchar(50))'
         cur.execute(create_page_str)
     except MySQLdb.OperationalError:
         try:
             dic = parse_page(soup,num)
-            insert_str = "insert into page_info (label,Borrower_name,Currency_exchange_loss,col_6,Listed_date,Pre_Disburesed_date,status,Repaymend_Schedule,Repayment_Term,large_cat,location,need_amount,specific_cat,tag_list,url) values (\'{0}\',\'{1}\',\'{2}\',\'{3}\',\'{4}\',\'{5}\',\'{6}\',\'{7}\',\'{8}\',\'{9}\',\'{10}\',\'{11}\',\'{12}\',\'{13}\',\'{14}\')"
-            tk_str = insert_str.format(num,dic['Borrower_name'],dic['Currency Exchange Loss'],dic['col_6'],dic['Listed'],dic['Pre-Disbursed'],dic['status'],dic['Repayment Schedule'],dic['Repayment Term'],dic['large_cat'],dic['location'],dic['needed_amount'],dic['specific_cat'],tag_convert(dic['tag_list']),dic['url'])
+            insert_str = "insert into page_info (label,Currency_exchange_loss,col_6,Listed_date,Pre_Disburesed_date,status,Repaymend_Schedule,Repayment_Term,large_cat,location,need_amount,specific_cat,tag_list,url) values (\'{0}\',\'{1}\',\'{2}\',\'{3}\',\'{4}\',\'{5}\',\'{6}\',\'{7}\',\'{8}\',\'{9}\',\'{10}\',\'{11}\',\'{12}\',\'{13}\')"
+            tk_str = insert_str.format(num,dic['Currency Exchange Loss'],dic['col_6'],dic['Listed'],dic['Pre-Disbursed'],dic['status'],dic['Repayment Schedule'],dic['Repayment Term'],dic['large_cat'],dic['location'],dic['needed_amount'],dic['specific_cat'],tag_convert(dic['tag_list']),dic['url'])
             cur.execute(tk_str)
             db.commit()
         except MySQLdb.IntegrityError:
@@ -251,7 +251,7 @@ def create_page_db(db,cur,num,soup):
 def create_field_db(db,cur,num,soup):
     try:
         create_field_str = 'create table field_info (kiva_borrowers varchar(30),average_loan_size varchar(30),currency_exchange_loss_rate varchar(30),default_rate varchar(30), deliquency_rate varchar(30),due_diligence_type varchar(30),interest_and_fees_are_chared varchar(30),loans_at_risk_rate varchar(30),name varchar(30) primary key unique,portfolio_yield varchar(30),profitability varchar(30),risk_rating varchar(30),time_on_kiva varchar(30),total_loans varchar(30))'
-        create_link_str = 'create table field_li(pro_num float unique, name varchar(30), foreign key(pro_num) references page_db(label) on delete cascade ON UPDATE CASCADE, foreign key(name) references field_db(name) on delete cascade ON UPDATE CASCADE)'
+        create_link_str = 'create table field_li(pro_num float unique, name varchar(30), foreign key(pro_num) references page_info(label) on delete cascade ON UPDATE CASCADE, foreign key(name) references field_info(name) on delete cascade ON UPDATE CASCADE)'
         cur.execute(create_field_str)
         cur.execute(create_link_str)
     except MySQLdb.OperationalError:
@@ -277,7 +277,7 @@ def create_country_db(db,cur,num,soup):
     try:       
         create_country_str = "create table country_info (name varchar(30) primary key unique,loans_item float, income float, loans_amounts float, exchange float)"
         cur.execute(create_country_str)
-        create_link_str = 'create table country_li (pro_num float unique, name varchar(30), foreign key(pro_num) references page_db(label) on delete cascade ON UPDATE CASCADE, foreign key(name) references country_db(name) on delete cascade ON UPDATE CASCADE)'
+        create_link_str = 'create table country_li (pro_num float unique, name varchar(30), foreign key(pro_num) references page_info(label) on delete cascade ON UPDATE CASCADE, foreign key(name) references country_info(name) on delete cascade ON UPDATE CASCADE)'
         cur.execute(create_link_str)
     except MySQLdb.OperationalError:
         try:        
@@ -304,7 +304,7 @@ if __name__ == "__main__":
 #    print sys.argv
     db = MySQLdb.connect(host='rosencrantz.berkeley.edu',user='kivalend',passwd='kivalend',db='kivalend')
     cur = db.cursor()
-    for i in range(int(sys.argv[1]),int(sys.argv[2])):
+    for i in [40046]:#range(int(sys.argv[1]),int(sys.argv[2])):
         try:
             url = "http://www.kiva.org/lend/{0}".format(i)
             res = requests.get(url)
