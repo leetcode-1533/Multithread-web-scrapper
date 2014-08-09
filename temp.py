@@ -109,12 +109,14 @@ def parse_page(soup,num):
     #Scraping location & Category
     web_header = soup.find('div',{'id':'pageHeader'})  
     #Borrower_name
-    Borrower_name = web_header.find('h2').text.strip()
+    Borrower = web_header.find('h2').text.strip()
+    Borrower_name = ''.join(chr(ord(c)) for c in Borrower)
     camp['Borrower_name'] = Borrower_name
     #Country&location:
     web_header_location = web_header.find('a',{'class':'country'})
     location = web_header_location.text.strip()
-    camp['location']=location
+    loc = ''.join(chr(ord(c)) for c in location) 
+    camp['location']=loc
     large_cat = web_header.find('span',{'class':'sector'}).text.strip()
     camp['large_cat']=large_cat
     specific_cat = web_header.find('span',{'class':'activity'}).text.strip()
@@ -236,13 +238,13 @@ def parse_field(soup):
 
 def create_page_db(db,cur,num,soup):
     try:
-        create_page_str = 'create table page_info (label float primary key unique,Currency_exchange_loss varchar(30),col_6 varchar(100),Listed_date varchar(30),Pre_Disburesed_date varchar(30),status varchar(150),Repaymend_Schedule varchar(30),Repayment_Term varchar(30),large_cat varchar(30),location varchar(30),need_amount varchar(30),specific_cat varchar(30),tag_list varchar(300),url varchar(50))'
+        create_page_str = 'create table page_info (label float primary key unique,Borrow_name varchar(30),Currency_exchange_loss varchar(30),col_6 varchar(100),Listed_date varchar(30),Pre_Disburesed_date varchar(30),status varchar(150),Repaymend_Schedule varchar(30),Repayment_Term varchar(30),large_cat varchar(30),location varchar(30),need_amount varchar(30),specific_cat varchar(30),tag_list varchar(300),url varchar(50))'
         cur.execute(create_page_str)
     except MySQLdb.OperationalError:
         try:
             dic = parse_page(soup,num)
-            insert_str = "insert into page_info (label,Currency_exchange_loss,col_6,Listed_date,Pre_Disburesed_date,status,Repaymend_Schedule,Repayment_Term,large_cat,location,need_amount,specific_cat,tag_list,url) values (\'{0}\',\'{1}\',\'{2}\',\'{3}\',\'{4}\',\'{5}\',\'{6}\',\'{7}\',\'{8}\',\'{9}\',\'{10}\',\'{11}\',\'{12}\',\'{13}\')"
-            tk_str = insert_str.format(num,dic['Currency Exchange Loss'],dic['col_6'],dic['Listed'],dic['Pre-Disbursed'],dic['status'],dic['Repayment Schedule'],dic['Repayment Term'],dic['large_cat'],dic['location'],dic['needed_amount'],dic['specific_cat'],tag_convert(dic['tag_list']),dic['url'])
+            insert_str = "insert into page_info (label,Borrow_name,Currency_exchange_loss,col_6,Listed_date,Pre_Disburesed_date,status,Repaymend_Schedule,Repayment_Term,large_cat,location,need_amount,specific_cat,tag_list,url) values (\'{0}\',\'{1}\',\'{2}\',\'{3}\',\'{4}\',\'{5}\',\'{6}\',\'{7}\',\'{8}\',\'{9}\',\'{10}\',\'{11}\',\'{12}\',\'{13}\',\'{14}\')"
+            tk_str = insert_str.format(num,dic['Currency Exchange Loss'],dic['Borrower_name'],dic['col_6'],dic['Listed'],dic['Pre-Disbursed'],dic['status'],dic['Repayment Schedule'],dic['Repayment Term'],dic['large_cat'],dic['location'],dic['needed_amount'],dic['specific_cat'],tag_convert(dic['tag_list']),dic['url'])
             cur.execute(tk_str)
             db.commit()
         except MySQLdb.IntegrityError:
@@ -304,7 +306,7 @@ if __name__ == "__main__":
 #    print sys.argv
     db = MySQLdb.connect(host='rosencrantz.berkeley.edu',user='kivalend',passwd='kivalend',db='kivalend')
     cur = db.cursor()
-    for i in [40046]:#range(int(sys.argv[1]),int(sys.argv[2])):
+    for i in range(int(sys.argv[1]),int(sys.argv[2])):
         try:
             url = "http://www.kiva.org/lend/{0}".format(i)
             res = requests.get(url)
@@ -318,8 +320,9 @@ if __name__ == "__main__":
                 create_country_db(db,cur,i,soup)
                 create_field_db(db,cur,i,soup)
                 print "finish at {0}".format(i)
-        except IndexError:
+        except :
             print "Wrong at {0}".format(i)
+            print sys.exc_info()[0]
             continue
         
             

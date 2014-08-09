@@ -14,7 +14,7 @@ for i in range(0,10):
     os.system('cp ../tk.sh ./work'+str(i)+'/tk.sh')
     os.chdir('work'+str(i))
     print os.getcwd()
-    os.system('bash tk.sh '+str(i*100000)+' '+str(i*100000+100000))
+    os.system('bash tk.sh '+str(i*10000)+' '+str(i*10000+10000))
     os.chdir('../')
 #print os.system('nohup python '+'test.py '+str(i*100000)+' '+str(i*100000+100000)+' &')
 #print os.chdir('../')
